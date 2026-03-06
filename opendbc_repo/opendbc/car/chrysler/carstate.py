@@ -114,7 +114,17 @@ class CarState(CarStateBase, MadsCarState, CarStateExt):
 
   @staticmethod
   def get_can_parsers(CP, CP_SP):
+    from opendbc.car.chrysler.values import RAM_HD
+    pt_messages = []
+    cam_messages = []
+
+    MadsCarState.get_parser(CP, pt_messages, cam_messages)
+
+    # CRUISE_BUTTONS may not be present on all RAM HD variants; add with ignore_alive
+    if CP.carFingerprint in RAM_HD:
+      pt_messages += [("CRUISE_BUTTONS", float("nan"))]  # ignore_alive: not required on all RAM HD variants
+
     return {
-      Bus.pt: CANParser(DBC[CP.carFingerprint][Bus.pt], [], 0),
-      Bus.cam: CANParser(DBC[CP.carFingerprint][Bus.pt], [], 2),
+      Bus.pt: CANParser(DBC[CP.carFingerprint][Bus.pt], pt_messages, 0),
+      Bus.cam: CANParser(DBC[CP.carFingerprint][Bus.pt], cam_messages, 2),
     }
